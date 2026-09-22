@@ -2,10 +2,13 @@ import pandas as pd
 import torch
 from sklearn.feature_extraction.text import TfidVectorizer
 from sklearn.preproccesing import LabelEncoder
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent
+DATA_PATH = BASE_DIR / ".." / "data" / "processed" / "clean.csv"
 
 def get_prepared_data():
-    df= pd.read_csv('data/processed/clean.csv')
+    df= pd.read_csv(DATA_PATH)
 
     vectorizer = TfidVectorizer(max_features=1000)
     x_numpy = vectorizer.fit_transformer(df["text"]).toarray()
