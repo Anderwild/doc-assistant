@@ -1,7 +1,0 @@
-venv/
-pycache/
-*.pyc
-data/raw
-data/processed/clean.csv
-.env.txt
-.ipynb_checkpoints/
