@@ -5,3 +5,4 @@ data/raw
 data/processed/clean.csv
 models/
 .ipynb_checkpoints/
+.env
