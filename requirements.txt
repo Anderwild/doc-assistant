@@ -182,3 +182,7 @@ widgetsnbextension==4.0.16
 wrapt==2.4.0
 yarl==1.24.5
 zc.lockfile==4.0
+torch==2.5.1
+scikit-learn==1.5.2
+gigachat==0.2.4
+python-dotenv==1.0.1

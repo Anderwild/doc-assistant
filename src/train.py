@@ -10,34 +10,42 @@ from model import TextClassifier
 def main():
     print("Инициализация обучения:")
 
+    # 1. Сначала разбиваем СЫРОЙ датасет
+    df = pd.read_csv(DATA_PATH)  # добавьте в начало файла:
+    # import pandas as pd
+    # from sklearn.feature_extraction.text import TfidfVectorizer
+    # from sklearn.preprocessing import LabelEncoder
+    # from pathlib import Path
+    # BASE_DIR = Path(__file__).resolve().parent
+    # DATA_PATH = BASE_DIR / ".." / "data" / "processed" / "clean.csv"
 
-    X, y = get_prepared_data()
-    in_features = X.shape[1]
-    num_classes= int(y.max()) + 1
-
-
-    X_tr, X_te, y_tr , y_te = train_test_split(
-        X.numpy(), y.numpy(), test_size=0.2, random_state = 42 
+    X_train_raw, X_test_raw, y_train_raw, y_test_raw = train_test_split(
+        df["text"], df["topic"], test_size=0.2, random_state=42
     )
+
+    # 2. TF-IDF обучаем ТОЛЬКО на train
+    vectorizer = TfidfVectorizer(max_features=1000)
+    X_tr = vectorizer.fit_transform(X_train_raw).toarray()
+    X_te = vectorizer.transform(X_test_raw).toarray()
+
+    # 3. LabelEncoder тоже только на train
+    label_encoder = LabelEncoder()
+    y_tr = label_encoder.fit_transform(y_train_raw)
+    y_te = label_encoder.transform(y_test_raw)
+
+    print(f"Обнаружено классов (тем): {len(label_encoder.classes_)}")
 
     X_train_tensor = torch.tensor(X_tr, dtype=torch.float32)
     y_train_tensor = torch.tensor(y_tr, dtype=torch.long)
     X_test_tensor = torch.tensor(X_te, dtype=torch.float32)
     y_test_tensor = torch.tensor(y_te, dtype=torch.long)
 
+    in_features = X_train_tensor.shape[1]
+    num_classes = len(label_encoder.classes_)
 
     train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
     test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
-
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-
-    model = TextClassifier(in_features=in_features, num_classes=num_classes)
-    loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr = 1e-3)
-
-    num_epochs = 10
-    best_test_loss = float('inf')
+    # ... дальше цикл эпох остаётся без изменений
 
 
     for epoch in range(num_epochs):
