@@ -1,0 +1,17 @@
+venv/
+.venv/
+pycache/
+*.pyc
+
+data/
+models/
+notebook/
+ollama/
+
+.git/
+.gitignore
+.dvc/
+.dvcignore
+*.dvc
+
+README.md

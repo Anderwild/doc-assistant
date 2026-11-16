@@ -1,0 +1,16 @@
+pandas
+numpy
+torch
+dvc[s3]
+scikit-learn
+matplotlib
+gigachat
+peft
+transformers
+tiktoken
+chromadb
+sentence-transformers
+faiss-cpu
+nltk
+fastapi
+mlflow
