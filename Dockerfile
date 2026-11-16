@@ -10,10 +10,14 @@ FROM python:3.11-slim
     10	    PYTHONUNBUFFERED=1
     11	
     12	COPY rq.in .
-    13	RUN pip install --no-cache-dir -r rq.in
-    14	COPY src/ ./src/
-    15	COPY .env .
-    16	
-    17	EXPOSE 8000
-    18	
-    19	CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    13	# faiss-cpu не имеет готовых wheel под Python 3.11 Ч ставим подсовместимую версию (дл€ 3.10)
+    14	# torch фиксируем на CPU-build: иначе в slim-контейнер т€нетс€ CUDA-верси€ (~3 √Ѕ)
+    15	RUN sed -i 's/^faiss-cpu$/faiss-cpu==1.8.0/; s/^torch$/torch==2.5.1+cpu/' rq.in && \
+    16	    pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r rq.in
+    17	COPY src/ ./src/
+    18	COPY .env .
+    19	
+    20	EXPOSE 8000
+    21	
+    22	CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    23	

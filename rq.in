@@ -13,4 +13,8 @@ sentence-transformers
 faiss-cpu
 nltk
 fastapi
+uvicorn
+python-dotenv
+requests
 mlflow
+
