@@ -1,40 +1,53 @@
-import json 
-from LLM_CLIENT import ask_gigachat
+import json
+from llm_client import ask_gigachat  # БЫЛО "from LLM_CLIENT" — проверьте регистр имени файла!
 
-def analyze_review_promt(review_text:str) -> str:
+
+def classify_news_prompt(text: str) -> str:
+    """Промпт для классификации новости по тематике (под ваш датасет)."""
+    TOPICS = ["Экономика", "Политика", "Спорт", "Технологии", "Культура", "Наука", "Происшествия"]
     prompt = f"""
-    You are a helpful assistant that analyzes product reviews. 
-    Please analyze the following review and provide a summary, sentiment (positive, negative, neutral), 
-    and any key points mentioned in the review.
+    Ты — ассистент для классификации новостных текстов по тематике.
+    Выбери ровно ОДНУ тему из закрытого списка: {", ".join(TOPICS)}.
 
-    Review: "{review_text}"
+    Текст новости: "{text}"
 
-    Please respond in JSON format with the following structure:
+    Ответь СТРОГО валидным JSON без markdown-обёрток (без ```json), со структурой:
     {{
-        "summary": "A brief summary of the review.",
-        "sentiment": "positive/negative/neutral",
-        "key_points": ["List of key points mentioned in the review."]
+        "topic": "одна тема из списка",
+        "confidence": 0.0,
+        "reason": "краткое обоснование выбора одной фразой"
     }}
     """
     return prompt
-if __name__ == "__main__":
-    #Наш сырой отзыв для анализа
-    user_review = """Купил эти наушники вчера. Звук чистый, объёмный за свои деньги топ.
-    Однако амбушуры слишком жёсткие, уши начинают болеть через час использования"""
 
-    print("1. Формируем сложный промт...")
-    final_prompt = analyze_review_promt(user_review)
+
+if __name__ == "__main__":
+    # Тестовый текст НОВОСТИ (не отзыв!) из вашего датасета
+    user_text = """
+    Центральный банк повысил ключевую ставку до 21%. Аналитики прогнозируют
+    ослабление рубля и рост инфляции в ближайшем квартале.
+    """
+
+    print("1. Формируем промт для классификации топика...")
+    final_prompt = classify_news_prompt(user_text)
+
     print("2. Отправляем промт в GigaChat...")
-    raw_response = ask_gigachat(final_prompt, temperature=0.1) # Низкая температура для соблюдения
+    raw_response = ask_gigachat(final_prompt, temperature=0.1)
 
     print(f"\nСырой ответ от модели:\n{raw_response}\n")
 
-    print("3. Проверка валидность полученного JSON...")
+    print("3. Проверка валидности полученного JSON...")
     try:
-        parced_json = json.loads(raw_response.strip())
-        print("Успех! Данные успешно преобразованы в python dict:")
-        print(f"Тоналпьность: {parsed_json.get('sentiment')}")
-        print(f"Плюсы:{parced_json.get('pros')}")
-        print(f"Минусы: {parced_json.get('cons')}")
+        # Очищаем ответ от markdown-обёртки ```json ... ```, если модель её добавила
+        cleaned = raw_response.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("```")[1]
+            cleaned = cleaned.removeprefix("json").strip()
+
+        parsed_json = json.loads(cleaned)  # БЫЛО "parced_json" — опечатка
+        print("Успех! Данные преобразованы в python dict:")
+        print(f"Топик: {parsed_json.get('topic')}")          # БЫЛО 'sentiment'
+        print(f"Уверенность: {parsed_json.get('confidence')}") # БЫЛО 'pros'
+        print(f"Обоснование: {parsed_json.get('reason')}")     # БЫЛО 'cons'
     except json.JSONDecodeError:
-        print("Ошибка: Модель нарушила формат и вернула невалидный JSON")
+        print("Ошибка: Модель вернула невалидный JSON")
